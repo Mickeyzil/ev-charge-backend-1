@@ -1,5 +1,6 @@
 const bcrypt = require("bcryptjs");
 const pool = require("../config/db");
+const jwt = require("jsonwebtoken");
 
 const registerUser = async (req, res) => {
     try {
@@ -108,9 +109,21 @@ const loginUser = async (req, res) => {
             });
         }
 
+        const token = jwt.sign(
+            {
+                userId: user.user_id
+            },
+            process.env.JWT_SECRET,
+            {
+                expiresIn: process.env.JWT_EXPIRES_IN || "1h",
+                algorithm: "HS256"
+            }
+        );
+
         return res.status(200).json({
             success: true,
             message: "Login successful",
+            token,
             user: {
                 user_id: user.user_id,
                 full_name: user.full_name,
@@ -129,7 +142,38 @@ const loginUser = async (req, res) => {
     }
 };
 
+const getCurrentUser = async (req, res) => {
+    try {
+        const [rows] = await pool.query(
+            `SELECT user_id, full_name, email, phone, car_model
+             FROM users
+             WHERE user_id = ?`,
+            [req.userId]
+        );
+
+        if (rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            user: rows[0]
+        });
+    } catch (error) {
+        console.error("Get current user error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error"
+        });
+    }
+};
+
 module.exports = {
     registerUser,
-    loginUser
+    loginUser,
+    getCurrentUser
 };
