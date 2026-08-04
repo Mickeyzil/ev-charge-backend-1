@@ -2,11 +2,13 @@ require("dotenv").config();
 const userRoutes = require("./routes/UserRoutes");
 const express = require("express");
 const pool = require("./config/db");
+const stationRoutes = require("./routes/stationRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
+app.use("/api/stations", stationRoutes);
 app.use("/api/users", userRoutes);
 
 app.get("/api/health", (req, res) => {
