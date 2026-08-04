@@ -1,5 +1,5 @@
 require("dotenv").config();
-
+const userRoutes = require("./routes/UserRoutes");
 const express = require("express");
 const pool = require("./config/db");
 
@@ -7,6 +7,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
+app.use("/api/users", userRoutes);
 
 app.get("/api/health", (req, res) => {
     res.status(200).json({
@@ -33,29 +34,6 @@ app.get("/api/health/database", async (req, res) => {
         res.status(500).json({
             success: false,
             message: "Database connection failed"
-        });
-    }
-});
-
-app.get("/api/health/tables", async (req, res) => {
-    try {
-        const [rows] = await pool.query(`
-            SELECT TABLE_NAME AS tableName
-            FROM information_schema.tables
-            WHERE TABLE_SCHEMA = DATABASE()
-            ORDER BY TABLE_NAME
-        `);
-
-        res.status(200).json({
-            success: true,
-            tables: rows.map(row => row.tableName)
-        });
-    } catch (error) {
-        console.error("Failed to read tables:", error.message);
-
-        res.status(500).json({
-            success: false,
-            message: "Failed to read database tables"
         });
     }
 });
