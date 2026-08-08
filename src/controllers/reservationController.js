@@ -3,7 +3,7 @@ const pool = require("../config/db");
 const getMyReservations = async (req, res) => {
     try {
         // מתקבל מה-token, לא מהמשתמש
-        const userId = req.user.userId;
+        const userId = req.userId;
 
         const [reservations] = await pool.query(
             `SELECT
